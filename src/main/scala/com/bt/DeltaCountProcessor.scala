@@ -67,6 +67,15 @@ object DeltaCountProcessor {
         var fetch_ins_val = "NA"
         var fetch_upd_val = "NA"
         var fetch_del_val = "NA"
+        var tot_val = "NA"
+        var tot_act_val = "NA"
+        var tot_inact_val = "NA"
+
+        //Compute results for total records
+        val tot_cnt_query = s"select count(1) AS cnt from ${queueName}.${process} "
+        Logger.getLogger(getClass).info(s"Total Count Query is : ${tot_cnt_query}")
+        val tot_cnt = hc.sql(s"${tot_cnt_query}")
+        tot_val = tot_cnt.map(RowValues => RowValues.getAs[Any]("cnt")).collect()(0).toString
 
         //Compute result for insert if Created column is not NA
         if (crt_col != "NA") {
@@ -102,10 +111,22 @@ object DeltaCountProcessor {
           Logger.getLogger(getClass).info(s"Delete Query is : ${del_query}")
           val del_cnt = hc.sql(s"${del_query}")
           fetch_del_val = del_cnt.map(RowValues => RowValues.getAs[Any]("del")).collect()(0).toString
+
+          //Compute results for total active records
+          val tot_act_query = s"select count(1) AS cnt from ${queueName}.${process} where  ${del_col} = 'N' "
+          Logger.getLogger(getClass).info(s"Total Active Count Query is : ${tot_act_query}")
+          val tot_act_cnt = hc.sql(s"${tot_act_query}")
+          tot_act_val = tot_act_cnt.map(RowValues => RowValues.getAs[Any]("cnt")).collect()(0).toString
+
+          //Compute results for total inactive records
+          val tot_inact_query = s"select count(1) AS cnt from ${queueName}.${process} where  ${del_col} = 'Y' "
+          Logger.getLogger(getClass).info(s"Total Inactive Count Query is : ${tot_inact_query}")
+          val tot_inact_cnt = hc.sql(s"${tot_inact_query}")
+          tot_inact_val = tot_inact_cnt.map(RowValues => RowValues.getAs[Any]("cnt")).collect()(0).toString
         }
 
         //Return metadata to be written to the file
-        val result = entity + "," + process + "," + fetch_ins_val + "," + fetch_upd_val + "," + fetch_del_val + "," + job_time
+        val result = entity + "," + process + "," + fetch_ins_val + "," + fetch_upd_val + "," + fetch_del_val + "," + tot_val+"," + tot_act_val+"," +tot_inact_val+"," + job_time
         resultArray = resultArray :+ result
       } catch {
         case e: Exception => {
@@ -129,7 +150,7 @@ object DeltaCountProcessor {
 
       }
     }
-    val count_per_process = sc.parallelize(resultArray)
+    val count_per_process = sc.parallelize(resultArray).repartition(1)
     count_per_process.saveAsTextFile(absOutputPath)
 
   }
