@@ -1,4 +1,4 @@
-AOQPJ4536Cpackage com.bt
+package com.easy
 import org.apache.spark.sql._
 import org.apache.spark.sql.hive.orc._
 import org.apache.spark.sql.expressions.Window
