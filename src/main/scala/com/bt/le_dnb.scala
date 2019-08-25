@@ -1,4 +1,4 @@
-package com.bt
+AOQPJ4536Cpackage com.bt
 import org.apache.spark.sql._
 import org.apache.spark.sql.hive.orc._
 import org.apache.spark.sql.expressions.Window
@@ -57,15 +57,15 @@ object le_dnb {
     val sqlContext = new org.apache.spark.sql.SQLContext(sc)
     import sqlContext.implicits._
     //----------------------load odm_crs_load_dnb_crs_int_test lookup file---------------------------------
-    val odm_crs_load_dnb_crs_company_status_lookup = sc.textFile("/user/HAASAAP0256_05038/odm_crs_load_dnb_crs_int_test").map(column => lookup_col_name(column.substring(0, 2).trim(), column.substring(2, column.length()).trim())).toDF()
+    val odm_crs_load_dnb_crs_company_status_lookup = sc.textFile("/user/LAASDAASAAP0256_05038/odm_crs_load_dnb_crs_int_test").map(column => lookup_col_name(column.substring(0, 2).trim(), column.substring(2, column.length()).trim())).toDF()
     //--------------------------------------------load all the tables----------------------------------------------------------------------------------------------
     //----------A.read from le_dnb take all feeds----------------------------------------------------------------------------------------------------------------
-    val dq_data_le_dnb = hiveContext.sql("select * from HAASAAP0346_05038.dq_data_le_dnb").persist()
-    val fil_status_cir_src_cdmc_cir_hub = hiveContext.sql("select * from HAASAAP0346_05038.cdmc_cir_hub where cir_src = 'LE_DNB' and status= 'A'").persist()
+    val dq_data_le_dnb = hiveContext.sql("select * from LAASDAASAAP0346_05038.dq_data_le_dnb").persist()
+    val fil_status_cir_src_cdmc_cir_hub = hiveContext.sql("select * from LAASDAASAAP0346_05038.cdmc_cir_hub where cir_src = 'LE_DNB' and status= 'A'").persist()
 
-    val le_dnb_reg_name_not_blank = hiveContext.sql("select * from HAASAAP0346_05038.sim_le_dnb").filter($"reg_name" !== "").persist()
-    val le_dnb_reg_name_blank = hiveContext.sql("select * from HAASAAP0346_05038.sim_le_dnb").filter($"reg_name" === "").rdd;
-    le_dnb_reg_name_blank.map(x => x.mkString("\u0001")).saveAsTextFile("/user/HAASAAP0256_05038/le_dnb_crs_test/dnb_input_reg_name_null_data.dat")
+    val le_dnb_reg_name_not_blank = hiveContext.sql("select * from LAASDAASAAP0346_05038.sim_le_dnb").filter($"reg_name" !== "").persist()
+    val le_dnb_reg_name_blank = hiveContext.sql("select * from LAASDAASAAP0346_05038.sim_le_dnb").filter($"reg_name" === "").rdd;
+    le_dnb_reg_name_blank.map(x => x.mkString("\u0001")).saveAsTextFile("/user/LAASDAASAAP0256_05038/le_dnb_crs_test/dnb_input_reg_name_null_data.dat")
     //------------------flow1 dedup on dnb_num-----------------------------------------------------------------------------
     val windowSpec = Window.partitionBy($"dnb_num").orderBy(col("ts_last_update").desc)
 
@@ -140,7 +140,7 @@ object le_dnb {
         && (un_refrmt_hq_dnb_num_blnk_mach_unmach_jn_lft("ta_postcode") === jn_dq_data_le_dnb_cir_hub("ta_postcode"))
         && (un_refrmt_hq_dnb_num_blnk_mach_unmach_jn_lft("ta_country_code") === jn_dq_data_le_dnb_cir_hub("ta_country_code")), "fullouter")
 
-        ful_outr_get_crs_an_jn_le_dnb_cir_hub.rdd.map(x=>x.mkString("\u0001"))saveAsTextFile("/user/HAASAAP0256_05038/le_dnb_crs_test/final_result.dat")
+        ful_outr_get_crs_an_jn_le_dnb_cir_hub.rdd.map(x=>x.mkString("\u0001"))saveAsTextFile("/user/LAASDAASAAP0256_05038/le_dnb_crs_test/final_result.dat")
     }
      catch {
         case e: Exception => {
